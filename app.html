@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>HYDRO+ Solution Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .water-gradient {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        }
+        .drought-gradient {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+        }
+        .quality-gradient {
+            background: linear-gradient(135deg, #55a3ff 0%, #003d82 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .map-container {
+            height: 300px;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                        <i class="fas fa-tint text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold">HYDRO+</h1>
+                        <p class="text-sm opacity-90">Water Intelligence Platform</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm opacity-90">Last Updated</p>
+                        <p class="font-semibold">Oct 20, 2025 10:00 AM</p>
+                    </div>
+                    <div class="w-3 h-3 bg-green-400 rounded-full pulse-dot"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <div class="container mx-auto px-6 py-8">
+        <!-- System Overview -->
+        <section class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">System Overview</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">Active Satellites</h3>
+                        <i class="fas fa-satellite text-blue-500 text-2xl"></i>
+                    </div>
+                    <p class="text-3xl font-bold text-blue-600">12</p>
+                    <p class="text-sm text-gray-500">Sentinel-1, Sentinel-2, Landsat</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">Data Points/Day</h3>
+                        <i class="fas fa-database text-green-500 text-2xl"></i>
+                    </div>
+                    <p class="text-3xl font-bold text-green-600">2.4M</p>
+                    <p class="text-sm text-gray-500">Real-time processing</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">Coverage Area</h3>
+                        <i class="fas fa-map text-purple-500 text-2xl"></i>
+                    </div>
+                    <p class="text-3xl font-bold text-purple-600">300K</p>
+                    <p class="text-sm text-gray-500">km² monitored</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">Active Users</h3>
+                        <i class="fas fa-users text-orange-500 text-2xl"></i>
+                    </div>
+                    <p class="text-3xl font-bold text-orange-600">1,247</p>
+                    <p class="text-sm text-gray-500">LGUs, Farmers, Agencies</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Real-time Monitoring -->
+        <section class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Real-time Monitoring</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Flood Monitoring -->
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="water-gradient text-white p-4 rounded-lg mb-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-bold">Flood Risk</h3>
+                            <i class="fas fa-water text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Metro Manila</span>
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">MODERATE</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Cagayan Valley</span>
+                            <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">HIGH</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Central Luzon</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">LOW</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <canvas id="floodChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Drought Monitoring -->
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="drought-gradient text-white p-4 rounded-lg mb-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-bold">Drought Index</h3>
+                            <i class="fas fa-sun text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Nueva Ecija</span>
+                            <span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">MODERATE</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Mindanao</span>
+                            <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">SEVERE</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Visayas</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">NORMAL</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <canvas id="droughtChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Water Quality -->
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="quality-gradient text-white p-4 rounded-lg mb-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-bold">Water Quality</h3>
+                            <i class="fas fa-flask text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Laguna de Bay</span>
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">FAIR</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Taal Lake</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">GOOD</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Marikina River</span>
+                            <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">POOR</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <canvas id="qualityChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- User Personas -->
+        <section class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">User Interfaces</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Mayor Susan's Interface -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-user-tie text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">Mayor Susan's Dashboard</h3>
+                            <p class="text-gray-600">Urban LGU - Flood Management</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div id="mayorMap" class="map-container"></div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-red-50 border-l-4 border-red-400 p-4">
+                            <div class="flex">
+                                <i class="fas fa-exclamation-triangle text-red-400 mr-3 mt-1"></i>
+                                <div>
+                                    <p class="font-semibold text-red-800">High Risk Alert</p>
+                                    <p class="text-red-700 text-sm">Barangay San Roque - 72hr flood forecast</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-3 bg-gray-50 rounded">
+                                <p class="text-2xl font-bold text-blue-600">15</p>
+                                <p class="text-sm text-gray-600">Barangays at Risk</p>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded">
+                                <p class="text-2xl font-bold text-green-600">8,500</p>
+                                <p class="text-sm text-gray-600">People Protected</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mang Jose's Interface -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-seedling text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">Mang Jose's Farm Monitor</h3>
+                            <p class="text-gray-600">5-hectare Rice Farm</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div id="farmMap" class="map-container"></div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                            <div class="flex">
+                                <i class="fas fa-exclamation-circle text-yellow-400 mr-3 mt-1"></i>
+                                <div>
+                                    <p class="font-semibold text-yellow-800">Irrigation Advisory</p>
+                                    <p class="text-yellow-700 text-sm">North field needs 3-hour irrigation cycle</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-3 bg-gray-50 rounded">
+                                <p class="text-2xl font-bold text-orange-600">35%</p>
+                                <p class="text-sm text-gray-600">Soil Moisture</p>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded">
+                                <p class="text-2xl font-bold text-green-600">0.65</p>
+                                <p class="text-sm text-gray-600">NDVI Health</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Architecture -->
+        <section class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">System Architecture</h2>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 text-center">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <i class="fas fa-satellite text-blue-600 text-3xl mb-2"></i>
+                        <h4 class="font-semibold text-gray-800">Data Ingestion</h4>
+                        <p class="text-sm text-gray-600">Satellite APIs, Weather Stations</p>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <i class="fas fa-arrow-right text-gray-400 text-2xl"></i>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <i class="fas fa-database text-green-600 text-3xl mb-2"></i>
+                        <h4 class="font-semibold text-gray-800">Processing & Storage</h4>
+                        <p class="text-sm text-gray-600">Cloud Data Lake, PostGIS</p>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <i class="fas fa-arrow-right text-gray-400 text-2xl"></i>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <i class="fas fa-brain text-purple-600 text-3xl mb-2"></i>
+                        <h4 class="font-semibold text-gray-800">AI Analytics</h4>
+                        <p class="text-sm text-gray-600">ML Models, Predictions</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h5 class="font-semibold text-gray-800 mb-2">Data Sources</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• Sentinel-1 (SAR)</li>
+                            <li>• Sentinel-2 (Optical)</li>
+                            <li>• Landsat 8/9</li>
+                            <li>• PAGASA Stations</li>
+                            <li>• NASA GPM</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h5 class="font-semibold text-gray-800 mb-2">Technology Stack</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• Python (GDAL, Scikit-learn)</li>
+                            <li>• React.js Frontend</li>
+                            <li>• PostgreSQL + PostGIS</li>
+                            <li>• AWS/GCP Cloud</li>
+                            <li>• Docker + Kubernetes</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h5 class="font-semibold text-gray-800 mb-2">Key Features</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• Real-time Processing</li>
+                            <li>• Predictive Analytics</li>
+                            <li>• Multi-source Fusion</li>
+                            <li>• Scalable Architecture</li>
+                            <li>• REST API Access</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Predictive Analytics -->
+        <section class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Predictive Analytics</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">7-Day Flood Forecast</h3>
+                    <canvas id="floodForecast" width="400" height="300"></canvas>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Drought Risk Projection</h3>
+                    <canvas id="droughtForecast" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Initialize Charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Flood Risk Chart
+            const floodCtx = document.getElementById('floodChart').getContext('2d');
+            new Chart(floodCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Low Risk', 'Moderate Risk', 'High Risk'],
+                    datasets: [{
+                        data: [60, 25, 15],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Drought Index Chart
+            const droughtCtx = document.getElementById('droughtChart').getContext('2d');
+            new Chart(droughtCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    datasets: [{
+                        label: 'Drought Index',
+                        data: [0.2, 0.4, 0.6, 0.8, 0.5],
+                        backgroundColor: '#f59e0b'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1
+                        }
+                    }
+                }
+            });
+
+            // Water Quality Chart
+            const qualityCtx = document.getElementById('qualityChart').getContext('2d');
+            new Chart(qualityCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Quality Score',
+                        data: [65, 70, 68, 72],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Flood Forecast Chart
+            const floodForecastCtx = document.getElementById('floodForecast').getContext('2d');
+            new Chart(floodForecastCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                    datasets: [{
+                        label: 'Flood Risk %',
+                        data: [15, 25, 45, 65, 80, 70, 50],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Drought Forecast Chart
+            const droughtForecastCtx = document.getElementById('droughtForecast').getContext('2d');
+            new Chart(droughtForecastCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+                    datasets: [{
+                        label: 'Soil Moisture %',
+                        data: [45, 40, 35, 30, 25, 28],
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Initialize Maps
+            // Mayor's Map
+            const mayorMap = L.map('mayorMap').setView([14.5995, 120.9842], 11);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mayorMap);
+            
+            // Add flood risk markers
+            L.marker([14.6042, 120.9822]).addTo(mayorMap)
+                .bindPopup('<b>Barangay San Roque</b><br>High Flood Risk<br>72hr forecast');
+            L.marker([14.5895, 120.9742]).addTo(mayorMap)
+                .bindPopup('<b>Barangay Central</b><br>Moderate Risk');
+
+            // Farm Map
+            const farmMap = L.map('farmMap').setView([15.4817, 120.9739], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(farmMap);
+            
+            // Add farm parcels
+            L.rectangle([[15.4800, 120.9720], [15.4830, 120.9760]], {
+                color: '#f59e0b',
+                weight: 2,
+                fillOpacity: 0.3
+            }).addTo(farmMap).bindPopup('<b>North Field</b><br>Soil Moisture: 35%<br>Status: Needs Irrigation');
+            
+            L.rectangle([[15.4770, 120.9720], [15.4800, 120.9760]], {
+                color: '#10b981',
+                weight: 2,
+                fillOpacity: 0.3
+            }).addTo(farmMap).bindPopup('<b>South Field</b><br>Soil Moisture: 65%<br>Status: Optimal');
+        });
+    </script>
+</body>
+</html>
